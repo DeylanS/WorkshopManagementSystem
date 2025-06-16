@@ -61,6 +61,27 @@ class _AddSchedulePageState extends State<AddSchedulePage> {
         return;
       }
 
+      final existingSchedules = Provider.of<ScheduleProvider>(context, listen: false).schedules;
+
+      final selectedDateOnly = _selectedDate!.toIso8601String().split('T')[0];
+      final newStartMinutes = _toMinutes(startTime);
+      final newEndMinutes = _toMinutes(endTime);
+
+    bool hasConflict = existingSchedules.any((schedule) {
+      final scheduleDate = schedule.date.toIso8601String().split('T')[0];
+      if (scheduleDate != selectedDateOnly) return false;
+
+      final existingStart = _toMinutes(schedule.startTime);
+      final existingEnd = _toMinutes(schedule.endTime);
+
+      return !(newEndMinutes <= existingStart || newStartMinutes >= existingEnd);
+    });
+
+    if (hasConflict) {
+      _showError("Schedule conflict: another schedule exists at this time.");
+      return;
+    }
+
       final newSchedule = Schedule(
         id: const Uuid().v4(),
         ownerId: 'owner001',
@@ -100,6 +121,11 @@ class _AddSchedulePageState extends State<AddSchedulePage> {
       });
     }
   }
+
+  int _toMinutes(String time) {
+  final parts = time.split(':');
+  return int.parse(parts[0]) * 60 + int.parse(parts[1]);
+}
 
   @override
   Widget build(BuildContext context) {

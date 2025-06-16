@@ -83,6 +83,29 @@ class _EditSchedulePageState extends State<EditSchedulePage> {
         endTime: endTime,
       );
 
+      final existingSchedules = Provider.of<ScheduleProvider>(context, listen: false).schedules;
+
+      final selectedDateOnly = _selectedDate!.toIso8601String().split('T')[0];
+      final newStartMinutes = _toMinutes(_startTimeController.text.trim());
+      final newEndMinutes = _toMinutes(_endTimeController.text.trim());
+
+      bool hasConflict = existingSchedules.any((schedule) {
+        if (schedule.id == widget.schedule.id) return false;
+
+        final scheduleDate = schedule.date.toIso8601String().split('T')[0];
+        if (scheduleDate != selectedDateOnly) return false;
+
+        final existingStart = _toMinutes(schedule.startTime);
+        final existingEnd = _toMinutes(schedule.endTime);
+
+        return !(newEndMinutes <= existingStart || newStartMinutes >= existingEnd);
+      });
+
+      if (hasConflict) {
+      _showError("Schedule conflict: another schedule exists at this time.");
+      return;
+      }
+
       Provider.of<ScheduleProvider>(
         context,
         listen: false,
@@ -112,6 +135,11 @@ class _EditSchedulePageState extends State<EditSchedulePage> {
         _selectedDate = picked;
       });
     }
+  }
+
+  int _toMinutes(String time) {
+  final parts = time.split(':');
+  return int.parse(parts[0]) * 60 + int.parse(parts[1]);
   }
 
   @override
