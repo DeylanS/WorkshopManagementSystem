@@ -4,37 +4,50 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_stripe/flutter_stripe.dart';
 
-// Adjust this import path to where your repository is located
+// Your Imports
 import 'Repositories/PaymentInfo.dart';
-
-// Adjust this import path to where your PaymentList screen is located
+import 'providers/inventory_provider.dart';
+import 'providers/schedule_provider.dart';
 import 'pages/Payment/PaymentList.dart';
-
+import 'screens/login_page.dart';
 
 void main() async {
-  // Standard Flutter & Firebase initialization
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp();
 
-  Stripe.publishableKey = 'pk_test_51RZTlhELyXHhdRCoPA5COMaHxcQ338EyeIUJuzJHl295KrgoUJHs53c6ZXXzYiQnDsJobMSTswu9hD1sjfq2MtJO006AIYDNoo'; // Replace with your key
+  Stripe.publishableKey = 'pk_test_51RZTlhELyXHhdRCoPA5COMaHxcQ338EyeIUJuzJHl295KrgoUJHs53c6ZXXzYiQnDsJobMSTswu9hD1sjfq2MtJO006AIYDNoo';
   await Stripe.instance.applySettings();
 
-  // Sign in anonymously for testing purposes
   await FirebaseAuth.instance.signInAnonymously();
 
-  // THIS IS THE CRUCIAL PART
+  // Use MultiProvider to provide all your providers at once
   runApp(
-    // You are providing the PaymentInfo instance here...
-    Provider<PaymentInfo>(
-      create: (_) => PaymentInfo(),
-      // ...so that the child (MyApp) and all its descendants can access it.
+    MultiProvider(
+      providers: [
+        // Provider for your PaymentInfo repository.
+        // Use Provider for objects that don't change/notify listeners.
+        Provider<PaymentInfo>(
+          create: (_) => PaymentInfo(),
+        ),
+        
+        // ChangeNotifierProvider for Inventory management.
+        ChangeNotifierProvider<InventoryProvider>(
+          create: (_) => InventoryProvider(),
+        ),
+
+        // ChangeNotifierProvider for Schedule management.
+        ChangeNotifierProvider<ScheduleProvider>(
+          create: (_) => ScheduleProvider(),
+        ),
+      ],
+      // The child of MultiProvider is your main App widget.
+      // All widgets within MyApp can now access all three providers.
       child: const MyApp(),
     ),
   );
 }
 
 class MyApp extends StatelessWidget {
-  
   const MyApp({super.key});
 
   @override
@@ -45,8 +58,7 @@ class MyApp extends StatelessWidget {
         primarySwatch: Colors.blue,
         useMaterial3: true,
       ),
-      // The PaymentList widget is a descendant, so it can find the provider.
-      home: const PaymentList(),
+      home: const LoginPage(),
     );
   }
 }
