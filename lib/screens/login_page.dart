@@ -4,6 +4,8 @@ import 'package:flutter/material.dart';
 import 'inventory/view_inventory.dart';
 import 'schedule/schedule_dashboard.dart'; // Example page 2
 import '../pages/Payment/PaymentList.dart'; // Example page 3
+import 'auth/signup_page.dart';
+import 'rating/rating_dashboard.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -25,11 +27,19 @@ class _LoginPageState extends State<LoginPage> {
       ),
       // 2. Body conditionally renders a widget based on login state
       body: Center(
-        child: _isLoggedIn
-            ? _buildDashboardButtons() // Show buttons if logged in
-            : _buildLoginButton(),      // Show login button if not
-      ),
+      child: _isLoggedIn
+          ? _buildDashboardButtons() // If TRUE, show the dashboard
+          : Column(                  // If FALSE, show a Column with two buttons
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                _buildLoginButton(),
+                const SizedBox(height: 12), // Adds some space between buttons
+                _buildRegisterButton(),
+              ],
+            ),
+    ),
     );
+  
   }
 
   // Widget for the initial Login Button
@@ -43,6 +53,18 @@ class _LoginPageState extends State<LoginPage> {
         });
       },
       child: const Text('Login'),
+    );
+  }
+
+  Widget _buildRegisterButton() {
+    return ElevatedButton(
+      onPressed: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => const SignUpPage()),
+            );
+          },
+      child: const Text('Sign Up'),
     );
   }
 
@@ -84,6 +106,17 @@ class _LoginPageState extends State<LoginPage> {
             );
           },
           child: const Text('Payments'),
+        ),
+        const SizedBox(height: 16),
+
+        ElevatedButton(
+          onPressed: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => const RatingDashboard()),
+            );
+          },
+          child: const Text('Ratings'),
         ),
       ],
     );
